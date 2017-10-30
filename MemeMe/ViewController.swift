@@ -17,12 +17,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         var bottomText: String?
         var originalImage: UIImage?
         var memedImage: UIImage
-        init(topText: String?, bottomText: String?, originalImage: UIImage?, memedImage: UIImage) {
-            self.topText = topText
-            self.bottomText = bottomText
-            self.originalImage = originalImage
-            self.memedImage = memedImage
-        }
     }
     
     // MARK: Default Texts
@@ -62,15 +56,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
         // Top Text Field
         
-        self.topTextField.text = defaultTopText
-        self.topTextField.defaultTextAttributes = memeTextAttributes
-        self.topTextField.delegate = memeTextFieldDelegate
+        configure(textField: topTextField, withText: defaultTopText)
 
         // Botton Text Field
         
-        self.bottomTextField.text = defaultBottomText
-        self.bottomTextField.defaultTextAttributes = memeTextAttributes
-        self.bottomTextField.delegate = memeTextFieldDelegate
+        configure(textField: bottomTextField, withText: defaultBottomText)
         
         // Disable Share Button
         
@@ -82,11 +72,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        // Text Alignment
+        // Top Text Field
         
-        self.topTextField.textAlignment = NSTextAlignment.center
-        self.bottomTextField.textAlignment = NSTextAlignment.center
-
+        configure(textField: topTextField, withText: topTextField.text!)
+        
+        // Botton Text Field
+        
+        configure(textField: bottomTextField, withText: bottomTextField.text!)
+        
         // Enable Camera Button only if camera is available
         
         cameraButton.isEnabled = UIImagePickerController.isSourceTypeAvailable(.camera)
@@ -123,7 +116,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         shareButton.isEnabled = false
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: subscribeToKeyboardNotifications
@@ -190,11 +183,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         UIImageWriteToSavedPhotosAlbum(memedImage, nil, nil, nil)
     }
     
+    // MARK: configure
+    
+    func configure(textField: UITextField, withText text: String) {
+        textField.text = text
+        textField.defaultTextAttributes = memeTextAttributes
+        textField.delegate = memeTextFieldDelegate
+        textField.textAlignment = NSTextAlignment.center
+    }
+    
     // MARK: resetMemeEditor
     
     func resetMemeEditor() {
-        self.topTextField.text = defaultTopText
-        self.bottomTextField.text = defaultBottomText
+        configure(textField: topTextField, withText: defaultTopText)
+        configure(textField: bottomTextField, withText: defaultBottomText)
         imagePickerView.image = nil
         shareButton.isEnabled = false
     }
@@ -221,22 +223,25 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return memedImage
     }
     
+    // MARK: presentImagePickerWith
+    
+    func presentImagePickerWith(sourceType: UIImagePickerControllerSourceType) {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = sourceType
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
     // MARK: IBAction pickAnImageFromCamera
     
     @IBAction func pickAnImageFromCamera(_ sender: Any) {
-        let imagePicker = UIImagePickerController()
-        imagePicker.delegate = self
-        imagePicker.sourceType = .camera
-        present(imagePicker, animated: true, completion: nil)
+        presentImagePickerWith(sourceType: .camera)
     }
     
     // MARK: IBAction pickAnImageFromAlbum
     
     @IBAction func pickAnImageFromAlbum(_ sender: Any) {
-        let imagePicker = UIImagePickerController()
-        imagePicker.delegate = self
-        imagePicker.sourceType = .photoLibrary
-        present(imagePicker, animated: true, completion: nil)
+        presentImagePickerWith(sourceType: .photoLibrary)
     }
     
     // MARK: IBAction shareAnMemedImage
@@ -262,7 +267,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // MARK: IBAction cancelAnMemedImage
     
     @IBAction func cancelAnMemedImage(_ sender: Any) {
-        self.resetMemeEditor()
+        resetMemeEditor()
         dismiss(animated: true, completion: nil)
     }
 }
