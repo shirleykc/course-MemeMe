@@ -12,13 +12,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     // MARK: Properties
     
-    struct Meme {
-        var topText: String?
-        var bottomText: String?
-        var originalImage: UIImage?
-        var memedImage: UIImage
-    }
-    
     // MARK: Default Texts
     
     let defaultTopText = "TOP"
@@ -83,7 +76,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         // Enable Camera Button only if camera is available
         
         cameraButton.isEnabled = UIImagePickerController.isSourceTypeAvailable(.camera)
-                
+        
+        // Hide the top navigation bar and bottom tab bar
+        navigationController?.navigationBar.isHidden = true
+        tabBarController?.tabBar.isHidden = true
+       
         // Subscribe to keyboard notifications
         
         subscribeToKeyboardNotifications()
@@ -166,21 +163,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func save() {
         let memedImage:UIImage = generateMemedImage()
         
+        // Create the meme
         let meme = Meme(topText: topTextField.text!, bottomText: bottomTextField.text!, originalImage: imagePickerView.image!, memedImage: memedImage)
         
-        if let memeTopText = meme.topText {
-            print("Meme Top Text: \(memeTopText)")
-        } else {
-            print("Meme Top Text: nil")
-        }
-        
-        if let memeBottomText = meme.bottomText {
-            print("Meme Bottom Text: \(memeBottomText)")
-        } else {
-            print("Meme Bottom Text: nil")
-        }
-        
-        UIImageWriteToSavedPhotosAlbum(memedImage, nil, nil, nil)
+        // Add it to the memes array in the Application Delegate
+        let object = UIApplication.shared.delegate
+        let appDelegate = object as! AppDelegate
+        appDelegate.sentMemes.append(meme)
     }
     
     // MARK: configure
@@ -251,15 +240,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let activityViewController = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
         present(activityViewController, animated: true, completion: nil)
         
-        // On activity complete, save the memed image and return to the launch state of meme editor
+        // On activity complete, save the memed image and return to the previous state of view controller
         
         activityViewController.completionWithItemsHandler = {
             (activityType: UIActivityType?, completed: Bool, returnedItems: [Any]?, errors: Error?) -> Void in
                 if completed {
                     self.save()
-                    print("Save successful")
                     self.resetMemeEditor()
-                    self.dismiss(animated: true, completion: nil)
+                    self.navigationController?.navigationBar.isHidden = false
+                    self.navigationController?.popViewController(animated: true)
                 }
             }
     }
@@ -268,7 +257,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     @IBAction func cancelAnMemedImage(_ sender: Any) {
         resetMemeEditor()
-        dismiss(animated: true, completion: nil)
+        navigationController?.navigationBar.isHidden = false
+        navigationController?.popViewController(animated: true)
     }
 }
 
